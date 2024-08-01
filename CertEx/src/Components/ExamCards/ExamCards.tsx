@@ -4,28 +4,30 @@ import CardContent from "@mui/material/CardContent";
 import Typography from "@mui/material/Typography";
 import Chip from "@mui/material/Chip";
 import styles from "./ExamCards.module.css";
-import NominationFormModal from "../NominationFormModal/NominationModalForm";
 import ExamCardViewModal from "../ExamCardViewModal/ExamCardViewModal";
+import NominationFormModal from "../NominationFormModal/NominationFormModal";
 
 // Define the prop types
 type CertificationLevel = "Beginner" | "Intermediate" | "Expert";
 
 interface ExamCardsProps {
+  id: number;
   provider: string;
-  certificationName: string;
+  certification_name: string;
   level: CertificationLevel;
   description: string;
   tags: string[];
-  officialLink: string;
+  official_link: string;
 }
 
 const ExamCards: React.FC<ExamCardsProps> = ({
+  id,
   provider,
-  certificationName,
+  certification_name,
   level,
   description,
   tags,
-  officialLink,
+  official_link,
 }) => {
   const [open, setOpen] = useState<boolean>(false);
   const [nominationOpen, setNominationOpen] = useState<boolean>(false);
@@ -76,7 +78,7 @@ const ExamCards: React.FC<ExamCardsProps> = ({
             {provider}
           </Typography>
           <Typography sx={{ fontSize: 15 }} variant="h5" component="div">
-            {certificationName}
+            {certification_name}
           </Typography>
           <Typography
             sx={{ mb: 0.5, mt: 0.5, fontSize: 12, color: borderColor }}
@@ -109,12 +111,12 @@ const ExamCards: React.FC<ExamCardsProps> = ({
         open={open}
         onClose={handleClose}
         borderColor={borderColor}
-        certificationName={certificationName}
+        certificationName={certification_name}
         provider={provider}
         level={level}
         description={description}
         tags={tags}
-        officialLink={officialLink}
+        officialLink={official_link}
         onNominate={handleNominationOpen}
       />
 
@@ -122,7 +124,8 @@ const ExamCards: React.FC<ExamCardsProps> = ({
       <NominationFormModal
         open={nominationOpen}
         onClose={handleNominationClose}
-        certificationName={certificationName}
+        id={id}
+        certificationName={certification_name}
       />
     </div>
   );
