@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
@@ -7,10 +7,9 @@ import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import axios from "axios";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-// Define the prop types
 interface NominationFormModalProps {
   open: boolean;
   onClose: () => void;
@@ -26,10 +25,28 @@ const NominationFormModal: React.FC<NominationFormModalProps> = ({
 }) => {
   const [plannedExamMonth, setPlannedExamMonth] = useState("");
   const [motivation, setMotivation] = useState("");
+  const [financialYear, setFinancialYear] = useState<{ from_date: string; to_date: string } | null>(null);
+
+  useEffect(() => {
+    const fetchFinancialYear = async () => {
+      try {
+        const response = await axios.get<{ from_date: string; to_date: string }[]>("http://localhost:5000/financial_years");
+        setFinancialYear(response.data[0] || null); // Assuming there's only one record
+      } catch (error) {
+        console.error("Error fetching financial year:", error);
+      }
+    };
+
+    fetchFinancialYear();
+  }, []);
 
   const handleSubmit = async () => {
+    if (!plannedExamMonth || !motivation) {
+      toast.error("Please fill in all required fields.");
+      return;
+    }
+
     try {
-      // Sample function to return a mock employee ID
       const getEmployeeId = () => 123; // Replace with actual employee ID fetching logic
 
       const newNomination = {
@@ -37,21 +54,11 @@ const NominationFormModal: React.FC<NominationFormModalProps> = ({
         planned_exam_month: plannedExamMonth,
         motivation_description: motivation,
         employee_id: getEmployeeId(),
-        department_approval: "pending",
-        l_and_d_approval: "pending",
-        exam_date: null,
-        exam_status: "pending",
-        upload_certificate_status: "not uploaded",
-        skill_matrix_status: "not updated",
-        reimbursement_status: "not complete",
-        nomination_status: "pending",
       };
 
-    //   await axios.post("/Data/nominations.json", newNomination);
-    console.log(newNomination)
+      await axios.post("http://localhost:5000/nominations", newNomination);
       toast.success("Nomination submitted successfully!");
 
-      // Close the modal after submission
       onClose();
     } catch (error) {
       toast.error("Failed to submit nomination.");
@@ -59,9 +66,14 @@ const NominationFormModal: React.FC<NominationFormModalProps> = ({
     }
   };
 
+  const currentDate = new Date();
+  const currentMonth = currentDate.toISOString().slice(0, 7); // Format YYYY-MM
+
+  const minDate = financialYear ? new Date(financialYear.from_date).toISOString().slice(0, 7) : currentMonth;
+  const maxDate = financialYear ? new Date(financialYear.to_date).toISOString().slice(0, 7) : currentMonth;
+
   return (
     <>
-      <ToastContainer position="top-right" autoClose={3000} />
       <Dialog
         open={open}
         onClose={onClose}
@@ -89,6 +101,13 @@ const NominationFormModal: React.FC<NominationFormModalProps> = ({
             InputLabelProps={{ shrink: true }}
             value={plannedExamMonth}
             onChange={(e) => setPlannedExamMonth(e.target.value)}
+            required
+            InputProps={{ 
+              inputProps: { 
+                min: minDate, 
+                max: maxDate 
+              } 
+            }} // Set the min and max dates based on financial year
           />
           <TextField
             margin="dense"
@@ -101,6 +120,7 @@ const NominationFormModal: React.FC<NominationFormModalProps> = ({
             placeholder="This will be reviewed by the Department head and L&D."
             value={motivation}
             onChange={(e) => setMotivation(e.target.value)}
+            required
           />
         </DialogContent>
         <DialogActions>

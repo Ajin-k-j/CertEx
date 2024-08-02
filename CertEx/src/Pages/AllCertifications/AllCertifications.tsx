@@ -2,6 +2,9 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import styles from "./AllCertifications.module.css";
 import ExamCards from "../../Components/ExamCards/ExamCards";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import TopFilter from "../../Components/TopFilter/TopFilter";
 
 // Define the type for certification level and criticality
 type CertificationLevel = "Beginner" | "Intermediate" | "Expert";
@@ -25,7 +28,7 @@ const AllCertifications: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get<CertificationData[]>("/Data/certifications.json");
+        const response = await axios.get<CertificationData[]>("http://localhost:5000/certifications");
         setData(response.data);
       } catch (error) {
         setData([]);
@@ -36,11 +39,15 @@ const AllCertifications: React.FC = () => {
   }, []);
 
   return (
+    <>
+    <ToastContainer position="top-right" autoClose={3000} />
+    <TopFilter/>
     <div className={styles.container}>
       {data.map((item) => (
         <ExamCards key={item.id} {...item} />
       ))}
     </div>
+    </>
   );
 };
 
